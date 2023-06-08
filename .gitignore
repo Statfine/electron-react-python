@@ -12,7 +12,8 @@ main/build
 main/dist
 main/dist_electron
 main/pydist
-main/api.spec
+main/venv
+*.pyc
 *.local
 yarn.lock
 package-lock.json

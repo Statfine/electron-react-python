@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "main": "electron/main.js",
   "scripts": {
-    "build-python": "python3 -m PyInstaller ./py/api.py --clean --distpath ./pydist",
+    "build-python": "python3 -m PyInstaller ./api.spec --clean --distpath ./pydist",
     "electron": "cross-env NODE_ENV=development electron .",
     "electron:build": "electron-builder"
   },
@@ -31,11 +31,15 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
-      "pydist/**/*"
+      "pydist/**/*",
+      "pydist/api/**/*"
     ],
     "directories": {
       "buildResources": "assets",
       "output": "dist_electron"
-    }
+    },
+    "asarUnpack": [
+      "**/pydist/api/**/*"
+    ]
   }
 }

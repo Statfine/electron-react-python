@@ -1,10 +1,9 @@
-// electron/main.js
-
 // 控制应用生命周期和创建原生浏览器窗口的模组
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
 
 const NODE_ENV = process.env.NODE_ENV
+let pyProc = null
 
 function createWindow () {
   // 创建浏览器窗口
@@ -25,7 +24,7 @@ function createWindow () {
   if (NODE_ENV === "development") {
     mainWindow.loadURL('http://localhost:3000')
   } else {
-    mainWindow.loadURL(`file://${path.join(__dirname, '../dist/index.html')}`);
+    mainWindow.loadURL(`file://${path.join(app.getAppPath(), '/dist/index.html')}`);
   }
   mainWindow.webContents.openDevTools()
 
@@ -33,13 +32,42 @@ function createWindow () {
 
 const createPyProc = () => {
   let port = '4242'
-  let script = path.join(__dirname, '../pydist/api/api')
-  // let script = `file://${path.join(__dirname, '../pydist/api/api')}`
-  pyProc = require('child_process').execFile(script, [port])
+
+  const appPath = app.isPackaged ? path.join(process.resourcesPath, 'app.asar.unpacked') : app.getAppPath();
+  const pythonExecPath = path.join(appPath, 'pydist/api/api');
+
+  // let script = path.join(app.getAppPath(), '/pydist/api/api')
+  console.log("Python script path: " + pythonExecPath);
+  
+  pyProc = require('child_process').execFile(pythonExecPath, [port], (error, stdout, stderr) => {
+    if (error) {
+      throw error;
+    }
+    console.log(stdout);
+  })
+
+  pyProc.on('error', (error) => {
+    console.error(`Python process error: ${error.message}`);
+  });
+
+  pyProc.stdout.on('data', (data) => {
+    console.log(`Python stdout: ${data}`);
+  });
+
+  pyProc.stderr.on('data', (data) => {
+    console.error(`Python stderr: ${data}`);
+  });
+
   if (pyProc != null) {
     console.log('child process success')
   }
 }
+
+const exitPyProc = () => {
+  pyProc.kill()
+  pyProc = null
+}
+
 
 // 这段程序将会在 Electron 结束初始化
 // 和创建浏览器窗口的时候调用
@@ -61,6 +89,8 @@ app.on('ready', createPyProc)
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
+
+app.on('will-quit', exitPyProc)
 
 // 在这个文件中，你可以包含应用程序剩余的所有部分的代码，
 // 也可以拆分成几个文件，然后用 require 导入。

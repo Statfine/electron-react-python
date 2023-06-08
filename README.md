@@ -5,6 +5,8 @@ Vite uses node: import which is supported in v16.0.0+ and v14.18.0+. v15 does no
 ``` bash
 # main目录
 cd main
+# 安装 venv
+python3 -m venv venv
 # 安装 pyinstaller
 pip3 install -r requirements.txt （不要翻墙）
 # 把 python 代码打包为可执行文件
